@@ -2,13 +2,18 @@
     Main client
 
 """
-
-##commit test
-
 import game_dict
+import json
 
 players = {}
 loggedPlayer = ""
+
+try:
+    with open("accounts.json", encoding="UTF-8") as file:
+        players = json.load(file)
+except FileNotFoundError:
+    with open("accounts.json", "w", encoding="UTF-8") as file:
+        json.dump(players, file, ensure_ascii=False)
 
 ##enum menu ?
     
@@ -52,7 +57,9 @@ while (True):
                             'atk': game_dict.playerClasses[classTmp]['atk'],
                             'def': game_dict.playerClasses[classTmp]['def'],
                             'weapon': weaponTmp
-                            }
+                            }            
+            with open("accounts.json", "w", encoding="UTF-8") as file:
+                json.dump(players, file, ensure_ascii=False)
             print("Account created.")
 
 #log in
@@ -63,14 +70,17 @@ while (True):
             loggedPlayer = ""
         else:
             print("Logged in successfuly")
-
+    
 #logout
     elif userInput == '3' or userInput.lower() == 'log out':
         loggedPlayer = ""
         print("Logged out successfuly")
 
 #list players
-    elif userInput == '4' or userInput.lower() == 'list' or userInput.lower() == 'list players':
+    elif userInput == '4' or userInput.lower() == 'list' or userInput.lower() == 'list players':        
+        with open("accounts.json", encoding="UTF-8") as file:  ##odświeżenie listy (ponowne pobranie)
+            players = json.load(file)
+
         if len(players) == 0:
             print("No players")
         else:
@@ -87,6 +97,9 @@ while (True):
             confirmed = input()
             if confirmed == 'Y':
                 players.pop(nameToDelete)
+
+                with open("accounts.json", "w", encoding="UTF-8") as file:    
+                    json.dump(players, file, ensure_ascii=False)
                 print("Account deleted.")
 
 #exit
