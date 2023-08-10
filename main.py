@@ -1,117 +1,77 @@
 """
     Main client
-
 """
-import game_lib
-import json
+import data.game_lib as game_lib
+from data.game_lib import game_data
+from data.game_lib import menuOptions
+from data.game_lib import check_if_menu_option
+import data.gUtils as gUtils
 
-players = {}
-loggedPlayer = ""
+##load data
+game_data = game_lib.load_data()
+players = game_lib.load_players(True)
+loggedPlayer = {}
 
-try:
-    with open("accounts.json", encoding="UTF-8") as file:
-        players = json.load(file)
-except FileNotFoundError:
-    with open("accounts.json", "w", encoding="UTF-8") as file:
-        json.dump(players, file, ensure_ascii=False)
-
-# game_dict.save_dict("weapons")
-game_lib.game_data = game_lib.load_data(game_lib.game_data)
-
-##enum menu ?
-    
+########################################
+##main loop    
 while (True):
-    print()
-    if loggedPlayer != "":
-        print("Player logged:", loggedPlayer)
+    gUtils.clrscr()
+    if loggedPlayer != {}:
+        print("Player:", loggedPlayer['name'])
     print('Main menu:')
-    print('1: create account')
-    print('2: log in')
-    print('3: log out')
-    print('4: list players')
-    print('5: delete account')
-    print('0: leave')
+    
+    for menuOption in menuOptions:
+        if menuOptions[menuOption]['visible']:
+            print(menuOptions[menuOption]['id'] + ': ' + menuOption)
+
     userInput = input()
 
 #create account
-    if userInput == '1' or userInput.lower() == 'create' or userInput.lower() == 'create account':
-        name = input("What's your name: ").capitalize()
-        if name in players:
-            print(">> Player", name, "already exists.")
-        else:
-            print("Select weapon:")
-            for weapon in list(game_lib.game_data["weapons"].keys()):
-                print('-', weapon)
-            weaponTmp = input().lower()
-            while weaponTmp not in game_lib.game_data["weapons"]:
-                weaponTmp = input("Weapon not found, try again: ").lower()    
-
-            print("Select class:")
-            for playerClass in list(game_lib.game_data["playerClasses"].keys()):
-                print('-', playerClass)
-            classTmp = input().lower()
-            while classTmp not in game_lib.game_data["playerClasses"]:
-                classTmp = input("Class not found, try again: ").lower()
-
-            players[name] = {'name': name,
-                            'lvl': 1,
-                            'class': classTmp,
-                            'hp':  game_lib.game_data["playerClasses"][classTmp]['hp'],
-                            'atk': game_lib.game_data["playerClasses"][classTmp]['atk'],
-                            'def': game_lib.game_data["playerClasses"][classTmp]['def'],
-                            'weapon': weaponTmp
-                            }            
-            with open("accounts.json", "w", encoding="UTF-8") as file:
-                json.dump(players, file, ensure_ascii=False)
-            print("Account created.")
+    if check_if_menu_option(userInput, 'create account'):
+        gUtils.clrscr()
+        loggedPlayer = gUtils.createAccount(game_data)
 
 #log in
-    elif userInput == '2' or userInput.lower() == 'log in':
-        loggedPlayer = input("Enter name: ").capitalize()
-        if loggedPlayer not in players:
-            print(">> Player", loggedPlayer, "does not exist.")
-            loggedPlayer = ""
+    elif check_if_menu_option(userInput, 'log in'):
+        name = input("Enter name: ").capitalize()
+        if name not in players:
+            print("(!) Player", name, "does not exist.")            
         else:
+            loggedPlayer = players[name]
             print("Logged in successfuly")
     
 #logout
-    elif userInput == '3' or userInput.lower() == 'log out':
+    elif check_if_menu_option(userInput, 'log out'):
         loggedPlayer = ""
         print("Logged out successfuly")
 
 #list players
-    elif userInput == '4' or userInput.lower() == 'list' or userInput.lower() == 'list players':        
-        with open("accounts.json", encoding="UTF-8") as file:  ##odświeżenie listy (ponowne pobranie)
-            players = json.load(file)
-
+    elif check_if_menu_option(userInput, 'list players'):     
+        players = game_lib.load_players()
         if len(players) == 0:
-            print(">> No players")
+            print("No players")
         else:
+            print('-' * 40)
             for playerTmp in players:
                 print(playerTmp, '\t| lvl:', players[playerTmp]['lvl'], '\t| class:', players[playerTmp]['class'])
+            print('-' * 40)
 
 #delete account
-    elif userInput == '5' or userInput.lower() == 'delete' or userInput.lower() == 'delete account':
+    elif check_if_menu_option(userInput, 'delete account'):
         nameToDelete = input("Enter account name to delete: ").capitalize()
         if nameToDelete not in players:
-            print("Account", nameToDelete, "does not exist.")
+            print("Player", nameToDelete, "does not exist.")
         else:
             print("Are you sure to delete account", nameToDelete + "? (Y/n)")
             confirmed = input()
             if confirmed == 'Y':
-                players.pop(nameToDelete)
-
-                with open("accounts.json", "w", encoding="UTF-8") as file:    
-                    json.dump(players, file, ensure_ascii=False)
+                gUtils.deleteAccount(nameToDelete)
                 print(">> Account deleted.")
 
 #exit
-    elif userInput == '0' or userInput.lower() == 'leave':
+    elif check_if_menu_option(userInput, 'leave'):
         break
 
 #################
 ## out of loop
 print("See Ya...")
-
-
-
