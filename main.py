@@ -2,7 +2,7 @@
     Main client
 
 """
-import game_dict
+import game_lib
 import json
 
 players = {}
@@ -14,6 +14,9 @@ try:
 except FileNotFoundError:
     with open("accounts.json", "w", encoding="UTF-8") as file:
         json.dump(players, file, ensure_ascii=False)
+
+# game_dict.save_dict("weapons")
+game_lib.game_data = game_lib.load_data(game_lib.game_data)
 
 ##enum menu ?
     
@@ -34,28 +37,28 @@ while (True):
     if userInput == '1' or userInput.lower() == 'create' or userInput.lower() == 'create account':
         name = input("What's your name: ").capitalize()
         if name in players:
-            print("Player", name, "already exists.")
+            print(">> Player", name, "already exists.")
         else:
             print("Select weapon:")
-            for weapon in list(game_dict.weapons.keys()):
+            for weapon in list(game_lib.game_data["weapons"].keys()):
                 print('-', weapon)
             weaponTmp = input().lower()
-            while weaponTmp not in game_dict.weapons:
+            while weaponTmp not in game_lib.game_data["weapons"]:
                 weaponTmp = input("Weapon not found, try again: ").lower()    
 
             print("Select class:")
-            for playerClass in list(game_dict.playerClasses.keys()):
+            for playerClass in list(game_lib.game_data["playerClasses"].keys()):
                 print('-', playerClass)
             classTmp = input().lower()
-            while classTmp not in game_dict.playerClasses:
+            while classTmp not in game_lib.game_data["playerClasses"]:
                 classTmp = input("Class not found, try again: ").lower()
 
             players[name] = {'name': name,
                             'lvl': 1,
                             'class': classTmp,
-                            'hp': game_dict.playerClasses[classTmp]['hp'],
-                            'atk': game_dict.playerClasses[classTmp]['atk'],
-                            'def': game_dict.playerClasses[classTmp]['def'],
+                            'hp':  game_lib.game_data["playerClasses"][classTmp]['hp'],
+                            'atk': game_lib.game_data["playerClasses"][classTmp]['atk'],
+                            'def': game_lib.game_data["playerClasses"][classTmp]['def'],
                             'weapon': weaponTmp
                             }            
             with open("accounts.json", "w", encoding="UTF-8") as file:
@@ -66,7 +69,7 @@ while (True):
     elif userInput == '2' or userInput.lower() == 'log in':
         loggedPlayer = input("Enter name: ").capitalize()
         if loggedPlayer not in players:
-            print("Player", loggedPlayer, "does not exist.")
+            print(">> Player", loggedPlayer, "does not exist.")
             loggedPlayer = ""
         else:
             print("Logged in successfuly")
@@ -82,7 +85,7 @@ while (True):
             players = json.load(file)
 
         if len(players) == 0:
-            print("No players")
+            print(">> No players")
         else:
             for playerTmp in players:
                 print(playerTmp, '\t| lvl:', players[playerTmp]['lvl'], '\t| class:', players[playerTmp]['class'])
@@ -100,7 +103,7 @@ while (True):
 
                 with open("accounts.json", "w", encoding="UTF-8") as file:    
                     json.dump(players, file, ensure_ascii=False)
-                print("Account deleted.")
+                print(">> Account deleted.")
 
 #exit
     elif userInput == '0' or userInput.lower() == 'leave':
