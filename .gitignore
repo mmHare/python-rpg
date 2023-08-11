@@ -1,3 +1,4 @@
 accounts.json
 .vscode/settings.json
 *.pyc
+config.conf

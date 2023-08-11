@@ -1,16 +1,21 @@
 """
     Main client
 """
-import data.game_lib as game_lib
-from data.game_lib import game_data
-from data.game_lib import menuOptions
-from data.game_lib import check_if_menu_option
-import data.gUtils as gUtils
+import files.game_lib as game_lib
+from files.game_lib import game_data, menuOptions, check_if_menu_option
+import files.gUtils as gUtils
+import files.gameplay as gameplay
 
 ##load data
 game_data = game_lib.load_data()
 players = game_lib.load_players(True)
 loggedPlayer = {}
+visibleMenuOptions = []
+
+# [strOut, key] = gUtils.encrypt_text('oleole')
+# print(strOut)
+# print(key)
+# print(gUtils.decrypt_text(strOut, key))
 
 ########################################
 ##main loop    
@@ -20,11 +25,22 @@ while (True):
         print("Player:", loggedPlayer['name'])
     print('Main menu:')
     
-    for menuOption in menuOptions:
+    menuOptions = game_lib.menu_options_set_visible(menuOptions, (loggedPlayer != {}))
+    visibleMenuOptions = []
+    i = 1
+    for menuOption in menuOptions:                
         if menuOptions[menuOption]['visible']:
-            print(menuOptions[menuOption]['id'] + ': ' + menuOption)
+            visibleMenuOptions.append((i, menuOptions[menuOption]['id']))
+            print(str(visibleMenuOptions[i-1][0]) + ': ' + menuOption)
+            i += 1
 
     userInput = input()
+
+    if userInput.isnumeric():
+        for pos, id in visibleMenuOptions:
+            if int(userInput) == pos:
+                userInput = str(id)
+                break
 
 #create account
     if check_if_menu_option(userInput, 'create account'):
@@ -33,16 +49,16 @@ while (True):
 
 #log in
     elif check_if_menu_option(userInput, 'log in'):
-        name = input("Enter name: ").capitalize()
-        if name not in players:
-            print("(!) Player", name, "does not exist.")            
+        playerTmp = game_lib.log_in()
+        if playerTmp == None:
+            print("(!) Log in failed")
+            loggedPlayer = {}
         else:
-            loggedPlayer = players[name]
-            print("Logged in successfuly")
+            loggedPlayer = playerTmp
     
 #logout
     elif check_if_menu_option(userInput, 'log out'):
-        loggedPlayer = ""
+        loggedPlayer = {}
         print("Logged out successfuly")
 
 #list players
@@ -67,6 +83,10 @@ while (True):
             if confirmed == 'Y':
                 gUtils.deleteAccount(nameToDelete)
                 print(">> Account deleted.")
+
+#play
+    elif check_if_menu_option(userInput, 'play'):
+        gameplay.play(loggedPlayer)
 
 #exit
     elif check_if_menu_option(userInput, 'leave'):
