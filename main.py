@@ -1,28 +1,16 @@
 """
     Main client
 """
-import files.game_lib as game_lib
-from files.game_lib import menuOptions, check_if_menu_option
+from files.game_lib import mainMenu
 import files.gUtils as gUtils
 import files.gameplay as gameplay
 import files.modPlayer as modPlayer
 
-
-# load data
-# game_lib.GameData.load_data()
-# game_lib.game_data = game_lib.load_data()
-players = modPlayer.load_players(True)
-loggedPlayer = {}
-visibleMenuOptions = []
-
-# [strOut, key] = gUtils.encrypt_text('oleole')
-# print(strOut)
-# print(key)
-# print(gUtils.decrypt_text(strOut, key))
+loggedPlayer = None
+modPlayer.load_players(True)
 
 ########################################
 # main loop
-
 
 while True:
     gUtils.clrscr()
@@ -30,60 +18,46 @@ while True:
         print("Player:", loggedPlayer.name)
     print('Main menu:')
 
-    menuOptions = game_lib.menu_options_set_visible(
-        menuOptions, (loggedPlayer != {}))
-    visibleMenuOptions = []
-    i = 1
-    for menuOption in menuOptions:
-        if menuOptions[menuOption]['visible']:
-            visibleMenuOptions.append((i, menuOptions[menuOption]['id']))
-            print(str(visibleMenuOptions[i-1][0]) + ': ' + menuOption)
-            i += 1
+    mainMenu.options_set_visible(loggedPlayer)
+    mainMenu.print_options()
 
     userInput = input()
 
-    if userInput.isnumeric():
-        for pos, idTmp in visibleMenuOptions:
-            if int(userInput) == pos:
-                userInput = str(idTmp)
-                break
-
-
 # create account
-    if check_if_menu_option(userInput, 'create account'):
+    if mainMenu.is_option(userInput, 'create account'):
         gUtils.clrscr()
         loggedPlayer = modPlayer.createAccount()
-        # playerPasswordSec = keyring.get_password('aaa', 'Alice')
 
 # log in
-    elif check_if_menu_option(userInput, 'log in'):
+    elif mainMenu.is_option(userInput, 'log in'):
         playerTmp = modPlayer.log_in()
         if playerTmp is None:
             print("(!) Log in failed")
-            loggedPlayer = {}
+            loggedPlayer = None
         else:
             loggedPlayer = playerTmp
 
 # logout
-    elif check_if_menu_option(userInput, 'log out'):
-        loggedPlayer = {}
+    elif mainMenu.is_option(userInput, 'log out'):
+        loggedPlayer = None
         print("Logged out successfuly")
 
 # list players
-    elif check_if_menu_option(userInput, 'list players'):
-        players = modPlayer.load_players()
+    elif mainMenu.is_option(userInput, 'list players'):
+        players = modPlayer.get_players_list()
         if len(players) == 0:
             print("No players")
         else:
             print('-' * 40)
-            for playerTmp in players:
+            for playerTmp, playerVal in players.items():
                 print(playerTmp, '\t| lvl:',
-                      players[playerTmp]['lvl'], '\t| class:',
-                      players[playerTmp]['playerClass'])
+                      playerVal['lvl'], '\t| class:',
+                      playerVal['playerClass'])
             print('-' * 40)
 
 # delete account
-    elif check_if_menu_option(userInput, 'delete account'):
+    elif mainMenu.is_option(userInput, 'delete account'):
+        players = modPlayer.get_players_list()
         nameToDelete = input("Enter account name to delete: ").capitalize()
         if nameToDelete not in players:
             print("Player", nameToDelete, "does not exist.")
@@ -95,11 +69,11 @@ while True:
                 print(">> Account deleted.")
 
 # play
-    elif check_if_menu_option(userInput, 'play'):
+    elif mainMenu.is_option(userInput, 'play'):
         gameplay.play(loggedPlayer)
 
 # exit
-    elif check_if_menu_option(userInput, 'leave'):
+    elif mainMenu.is_option(userInput, 'leave'):
         break
 
 #################

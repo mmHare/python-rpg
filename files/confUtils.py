@@ -2,8 +2,12 @@ import os.path
 import fileinput
 from datetime import datetime
 
-gameName = "python-rpg"
-gameVersion = "1.0.0.1"
+GAME_NAME = "python-rpg"
+GAME_VERSION = "1.0.0.1"
+
+# PATHS TO FILES
+PATH_GAME_DATA = "./data/data.json"
+PATH_ACCOUNTS = "./data/accounts.json"
 
 
 def save_config_value(keyName, keyVal):
@@ -48,19 +52,19 @@ def get_config_val(keyName):
 
 
 def check_version():
-    print(gameName, 'v', gameVersion)
+    print(GAME_NAME, 'v', GAME_VERSION)
 
     if not os.path.isfile("config.conf"):
         # create new conf file
         with open("config.conf", "w", encoding="UTF-8") as file:
             now = datetime.now()
             modificationTime = now.strftime("%d/%m/%Y %H:%M:%S")
-            file.write("#" + gameName + ' configuration\n')
+            file.write("#" + GAME_NAME + ' configuration\n')
             file.write("#Created at:" + modificationTime + '\n')
             file.write("#Modified at:" + modificationTime + '\n')
-        save_config_value("version", gameVersion)
+        save_config_value("version", GAME_VERSION)
 
-    if get_config_val("version") == gameVersion:
+    if get_config_val("version") == GAME_VERSION:
         print("Version up to date")
     else:
         print("Update available")
@@ -69,5 +73,5 @@ def check_version():
 
 def updateVersion():
     # update stuff in future
-    save_config_value("version", gameVersion)
+    save_config_value("version", GAME_VERSION)
     print("Update successful")

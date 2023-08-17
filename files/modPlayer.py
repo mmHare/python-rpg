@@ -1,9 +1,9 @@
 import json
 import random
 import getpass
-# import files.game_lib as game_lib
 from files.game_lib import gameDataObj
 import files.gUtils as gUtils
+from files.confUtils import PATH_ACCOUNTS
 
 
 class Player:
@@ -30,11 +30,10 @@ class Player:
     def set_password(self, passwordIn):
         self.password = gUtils.hash_text(passwordIn)
 
-    def load_player_data(self):
+    def load_data(self):
         if (self.playerId == 0) or (self.name == ''):
             return None
-        with open("./data/accounts.json", encoding="UTF-8") as file:
-            players = json.load(file)
+        players = load_players()
         self.lvl = players[self.name]['lvl']
         self.playerClass = players[self.name]['playerClass']
         self.hp = players[self.name]['hp']
@@ -57,42 +56,26 @@ class Player:
                       }
         return playerData
 
+    def save_data(self):
+        if (self.playerId == 0) or (self.name == ''):
+            return None
+        players = load_players()
+        if self.name in players:
+            players[self.name] = self.get_data_to_save()
+        else:
+            players.update(self.get_data_to_save())
+        save_players(players)
+
 
 def save_players(players):
-    with open("./data/accounts.json", "w", encoding="UTF-8") as file:
+    with open(PATH_ACCOUNTS, "w", encoding="UTF-8") as file:
         json.dump(players, file, ensure_ascii=False)
-
-
-def player_save(player: Player):
-    playerToSave = player.get_data_to_save()
-    players = {}
-
-    with open("./data/accounts.json", encoding="UTF-8") as file:
-        players = json.load(file)
-    if player.name in players:
-        players[player.name] = playerToSave
-    else:
-        players.update(playerToSave)
-    save_players(players)
-
-
-def get_players_list():
-    players = load_players()
-    playerList = {}
-    for player in players:
-        playerList.update({players[player]['name']: {
-            'name': players[player]['name'],
-            'playerId': players[player]['playerId'],
-            'lvl': players[player]['lvl'],
-            'playerClass': players[player]['playerClass']
-        }})
-    return playerList
 
 
 def load_players(tryNewFile=False):
     players = {}
     try:
-        with open("./data/accounts.json", encoding="UTF-8") as file:
+        with open(PATH_ACCOUNTS, encoding="UTF-8") as file:
             players = json.load(file)
     except FileNotFoundError:
         if tryNewFile:
@@ -100,8 +83,21 @@ def load_players(tryNewFile=False):
     return players
 
 
+def get_players_list():
+    players = load_players()
+    playerList = {}
+    for player in players:
+        playerList.update({players[player]['name']: {
+                'name':        players[player]['name'],
+                'playerId':    players[player]['playerId'],
+                'lvl':         players[player]['lvl'],
+                'playerClass': players[player]['playerClass']}
+            })
+    return playerList
+
+
 def check_password(playerId, name, tries=1):
-    with open("./data/accounts.json", encoding="UTF-8") as file:
+    with open(PATH_ACCOUNTS, encoding="UTF-8") as file:
         players = json.load(file)
     passwordTmp = players[name]['password']
     triesCount = 0
@@ -121,9 +117,9 @@ def log_in():
     if name not in playerList:
         print("(!) Player", name, "does not exist.")
     else:
-        if check_password(playerList[name]['playerId'], name):
+        if check_password(playerList[name]['playerId'], name, tries=3):
             print("Logged in successfuly")
-            return Player(playerList[name]['playerId'], name).load_player_data()  # noqa: E501
+            return Player(playerList[name]['playerId'], name).load_data()  # noqa: E501
 
 
 def createAccount():
@@ -132,14 +128,11 @@ def createAccount():
     name = input("What's your name: ").capitalize()
     if name in playerList:
         print("(!) Player", name, "already exists.")
-        player = {}
+        player = None
     else:
         playerId = "%05d" % random.randint(0, 99999)
         player = Player(playerId, name)
-        playerPassword = getpass.getpass()
-        player.set_password(playerPassword)
-
-        # game_data = game_lib.load_data()
+        player.set_password(getpass.getpass())
 
         print("Select class:")
         for playerClass in list(gameDataObj.data["classes"].keys()):
@@ -157,23 +150,8 @@ def createAccount():
             weaponTmp = input("Weapon not found, try again: ").lower()
         player.equip_weapon(weaponTmp)
 
-        # player = {'id': id,
-        #           'name': name,
-        #           'lvl': 1,
-        #           'class': classTmp,
-        #           'hp':  game_data["classes"][classTmp]['hp'],
-        #           'atk': game_data["classes"][classTmp]['atk'],
-        #           'def': game_data["classes"][classTmp]['def'],
-        #           'weapon': weaponTmp,
-        #           'magic': magic,
-        #           'password': playerPasswordSec
-        #           }
-        # players[name] = player
+        player.save_data()
 
-        # players.update(player)
-
-        player_save(player)
-        # save_players(players)
         print("Account created.")
     return player
 
