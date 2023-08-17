@@ -2,13 +2,16 @@
     Main client
 """
 import files.game_lib as game_lib
-from files.game_lib import game_data, menuOptions, check_if_menu_option
+from files.game_lib import menuOptions, check_if_menu_option
 import files.gUtils as gUtils
 import files.gameplay as gameplay
+import files.modPlayer as modPlayer
 
-##load data
-game_data = game_lib.load_data()
-players = game_lib.load_players(True)
+
+# load data
+# game_lib.GameData.load_data()
+# game_lib.game_data = game_lib.load_data()
+players = modPlayer.load_players(True)
 loggedPlayer = {}
 visibleMenuOptions = []
 
@@ -18,17 +21,20 @@ visibleMenuOptions = []
 # print(gUtils.decrypt_text(strOut, key))
 
 ########################################
-##main loop    
-while (True):
+# main loop
+
+
+while True:
     gUtils.clrscr()
-    if loggedPlayer != {}:
-        print("Player:", loggedPlayer['name'])
+    if loggedPlayer:
+        print("Player:", loggedPlayer.name)
     print('Main menu:')
-    
-    menuOptions = game_lib.menu_options_set_visible(menuOptions, (loggedPlayer != {}))
+
+    menuOptions = game_lib.menu_options_set_visible(
+        menuOptions, (loggedPlayer != {}))
     visibleMenuOptions = []
     i = 1
-    for menuOption in menuOptions:                
+    for menuOption in menuOptions:
         if menuOptions[menuOption]['visible']:
             visibleMenuOptions.append((i, menuOptions[menuOption]['id']))
             print(str(visibleMenuOptions[i-1][0]) + ': ' + menuOption)
@@ -37,42 +43,46 @@ while (True):
     userInput = input()
 
     if userInput.isnumeric():
-        for pos, id in visibleMenuOptions:
+        for pos, idTmp in visibleMenuOptions:
             if int(userInput) == pos:
-                userInput = str(id)
+                userInput = str(idTmp)
                 break
 
-#create account
+
+# create account
     if check_if_menu_option(userInput, 'create account'):
         gUtils.clrscr()
-        loggedPlayer = gUtils.createAccount(game_data)
+        loggedPlayer = modPlayer.createAccount()
+        # playerPasswordSec = keyring.get_password('aaa', 'Alice')
 
-#log in
+# log in
     elif check_if_menu_option(userInput, 'log in'):
-        playerTmp = game_lib.log_in()
-        if playerTmp == None:
+        playerTmp = modPlayer.log_in()
+        if playerTmp is None:
             print("(!) Log in failed")
             loggedPlayer = {}
         else:
             loggedPlayer = playerTmp
-    
-#logout
+
+# logout
     elif check_if_menu_option(userInput, 'log out'):
         loggedPlayer = {}
         print("Logged out successfuly")
 
-#list players
-    elif check_if_menu_option(userInput, 'list players'):     
-        players = game_lib.load_players()
+# list players
+    elif check_if_menu_option(userInput, 'list players'):
+        players = modPlayer.load_players()
         if len(players) == 0:
             print("No players")
         else:
             print('-' * 40)
             for playerTmp in players:
-                print(playerTmp, '\t| lvl:', players[playerTmp]['lvl'], '\t| class:', players[playerTmp]['class'])
+                print(playerTmp, '\t| lvl:',
+                      players[playerTmp]['lvl'], '\t| class:',
+                      players[playerTmp]['playerClass'])
             print('-' * 40)
 
-#delete account
+# delete account
     elif check_if_menu_option(userInput, 'delete account'):
         nameToDelete = input("Enter account name to delete: ").capitalize()
         if nameToDelete not in players:
@@ -81,17 +91,17 @@ while (True):
             print("Are you sure to delete account", nameToDelete + "? (Y/n)")
             confirmed = input()
             if confirmed == 'Y':
-                gUtils.deleteAccount(nameToDelete)
+                modPlayer.deleteAccount(nameToDelete)
                 print(">> Account deleted.")
 
-#play
+# play
     elif check_if_menu_option(userInput, 'play'):
         gameplay.play(loggedPlayer)
 
-#exit
+# exit
     elif check_if_menu_option(userInput, 'leave'):
         break
 
 #################
-## out of loop
+# out of loop
 print("See Ya...")
