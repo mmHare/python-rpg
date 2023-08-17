@@ -49,8 +49,8 @@ class MainMenu:
                 print(str(val['tmp_id']) + ': ' + option)    
 
     def is_option(self, inputStr, menuOption):
-        if ((inputStr == self.options[menuOption]['tmp_id'])
-            or (inputStr.lower() in self.options[menuOption]['keywords'])):
+        if ((inputStr == self.options[menuOption]['tmp_id']) 
+                or (inputStr.lower() in self.options[menuOption]['keywords'])):
             return True
         else:
             return False

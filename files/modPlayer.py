@@ -1,6 +1,7 @@
 import json
 import random
 import getpass
+import requests
 from files.game_lib import gameDataObj
 import files.gUtils as gUtils
 from files.confUtils import PATH_ACCOUNTS
@@ -125,7 +126,21 @@ def log_in():
 def createAccount():
     playerList = get_players_list()
 
-    name = input("What's your name: ").capitalize()
+    name = input("What's your name (random to generate): ").capitalize()
+    if name == 'Random':
+        gender = input("random: male/female/DC? ")
+        while True:
+            if gender == 'male':
+                name = api_get_random_name('male')
+            elif gender == 'female':
+                name = api_get_random_name('female')
+            else:
+                name = api_get_random_name()
+            answer = input(name + '? (Y/n) ').upper()
+            if answer == 'Y':
+                break
+            elif answer == 'N':
+                return None
     if name in playerList:
         print("(!) Player", name, "already exists.")
         player = None
@@ -160,3 +175,22 @@ def deleteAccount(nameToDelete):
     players = load_players()
     players.pop(nameToDelete)
     save_players(players)
+
+
+def api_get_random_name(gender=""):
+    params = {"datatype": "json"}
+    if gender in ["male", "female"]:
+        params["gender"] = gender
+
+    name = ""
+    i = 0
+    while i < 30:
+        r = requests.get("https://randomuser.me/api/", params, timeout=5)
+        result = r.json()
+
+        nameTmp = result['results'][0]['name']['first']
+        if nameTmp.isascii():
+            name = nameTmp
+            break
+        i += 1
+    return name

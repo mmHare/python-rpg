@@ -21,7 +21,7 @@ while True:
     mainMenu.options_set_visible(loggedPlayer)
     mainMenu.print_options()
 
-    userInput = input()
+    userInput = input().strip()
 
 # create account
     if mainMenu.is_option(userInput, 'create account'):
