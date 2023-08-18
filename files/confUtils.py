@@ -1,9 +1,11 @@
+'''constants and configuration stuff'''
+
 import os.path
 import fileinput
 from datetime import datetime
 
 GAME_NAME = "python-rpg"
-GAME_VERSION = "1.0.0.1"
+GAME_VERSION = "1.0.0.3"
 
 # PATHS TO FILES
 PATH_GAME_DATA = "./data/data.json"
